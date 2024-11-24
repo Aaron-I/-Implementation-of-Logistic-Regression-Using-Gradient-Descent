@@ -22,67 +22,97 @@ Developed by: AARON I
 RegisterNumber:  212223230002
 */
 import pandas as pd
+import numpy as np
+
 df = pd.read_csv("/content/Placement_Data.csv")
-print(df.head())
-df1 = df.copy()
-df1 = df1.drop(['sl_no', 'salary'], axis = 1)
-# print(df1.head())
-print(df1.isnull().sum())
-print(df1.duplicated().sum())
+# print(df)
 
-from sklearn.preprocessing import LabelEncoder
-le = LabelEncoder()
+df = df.drop('sl_no',axis = 1)
+df = df.drop('salary',axis = 1)
 
-df1['gender'] = le.fit_transform(df1['gender'])
-df1['ssc_b'] = le.fit_transform(df1['ssc_b'])
-df1['ssc_p'] = le.fit_transform(df1['ssc_p'])
-df1['hsc_b'] = le.fit_transform(df1['hsc_b'])
-df1['hsc_p'] = le.fit_transform(df1['hsc_p'])
-df1['hsc_s'] = le.fit_transform(df1['hsc_s'])
-df1['degree_t'] = le.fit_transform(df1['degree_t'])
-df1['workex'] = le.fit_transform(df1['workex'])
-df1['status'] = le.fit_transform(df1['status'])
-df1["specialisation"]=le.fit_transform(df1["specialisation"])
+# print(df)
 
-print(df1)
+df['gender'] = df['gender'].astype('category')
+df['ssc_b'] = df['ssc_b'].astype('category')
+df['hsc_b'] = df['hsc_b'].astype('category')
+df['degree_t'] = df['degree_t'].astype('category')
+df['workex'] = df['workex'].astype('category')
+df['specialisation'] = df['specialisation'].astype('category')
+df['status'] = df['status'].astype('category')
+df['hsc_s'] = df['hsc_s'].astype('category')
+print(df.dtypes)
+print(df)
 
-x = df1.iloc[:,:-1]
-# print(x)
+X=df.iloc[:,: -1]
+Y=df["status"]
 
-y = df1['status']
-# print(y)
+df['gender'] = df['gender'].cat.codes
+df['ssc_b'] = df['ssc_b'].cat.codes
+df['hsc_b'] = df['hsc_b'].cat.codes
+df['degree_t'] = df['degree_t'].cat.codes
+df['workex'] = df['workex'].cat.codes
+df['specialisation'] = df['specialisation'].cat.codes
+df['status'] = df['status'].cat.codes
+df['hsc_s'] = df['hsc_s'].cat.codes
 
-from sklearn.impute import SimpleImputer
-imputer = SimpleImputer(strategy='mean')
-x = imputer.fit_transform(x)
+# print(df)
 
-from sklearn.model_selection import train_test_split
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, random_state = 0)
+X = df.iloc[:,:-1].values
+Y=df['status'].values
+# print(X)
+# print(Y)
 
-from sklearn.linear_model import LogisticRegression
-lr = LogisticRegression(solver = "liblinear")
-lr.fit(x_train, y_train)
-y_pred = lr.predict(x_test)
+theta = np.random.randn(X.shape[1])
+y = Y
+
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+
+def loss(theta, X, y):
+    h = sigmoid(X.dot(theta))
+    return -np.sum(y * np.log(h) + (1 - y) * np.log(1-h))
+
+def gradient_descent(theta, X, y, alpha, num_iterations):
+    m = len(y)
+    for i in range(num_iterations):
+        h = sigmoid(X.dot(theta))
+        gradient = X.T.dot(h - y) / m
+        theta = theta - alpha * gradient
+    return theta
+
+theta = gradient_descent(theta, X, y, alpha = 0.01, num_iterations = 1000)
+
+def predict(theta, X):
+    h = sigmoid(X.dot(theta))
+    y_pred = np.where(h>=0.5, 1, 0)
+    return y_pred
+
+y_pred = predict(theta, X)
+
+accuracy = np.mean(y_pred.flatten() == y)
+print("Accury:",accuracy)
+
+print("Y predicted :")
 print(y_pred)
 
-from sklearn.metrics import accuracy_score
-accuracy=accuracy_score(y_test,y_pred)
-accuracy
+print("Y :")
+print(y)
 
-from sklearn.metrics import confusion_matrix
-confusion = confusion_matrix(y_test,y_pred)
+x_new = np.array([[0, 87, 0, 95, 0, 2, 78, 2, 0, 0, 1, 0]])
+y_pred_new1 = predict(theta, x_new)
+print("Y Predict new 1:",y_pred_new1)
 
-from sklearn.metrics import classification_report
-classification_report1 = classification_report(y_test, y_pred)
-print(classification_report1)
-
-print(lr.predict([[1, 80, 1, 90, 1, 1, 90, 1, 0, 85, 1, 85]]))
+x_new = np.array([[0, 0, 0, 0, 0, 2, 8, 2, 0, 0, 1, 0]])
+y_pred_new2 = predict(theta, x_new)
+print("Y Predict new 2:", y_pred_new2)
 ```
 
 ## Output:
-![Screenshot 2024-09-19 114025](https://github.com/user-attachments/assets/e6132dda-82a4-45d6-bef9-fdd304cefa5e)
+![Screenshot 2024-11-24 153615](https://github.com/user-attachments/assets/24b16434-f823-414b-a625-5918fd9269a2)
 
-![Screenshot 2024-09-19 114038](https://github.com/user-attachments/assets/b4212c7d-c4bd-4444-a817-5453d17c40fd)
+
+![Screenshot 2024-11-24 153625](https://github.com/user-attachments/assets/e3f70ea9-2a0a-4ea7-845b-7dfce3113ad5)
+
 
 
 ## Result:
